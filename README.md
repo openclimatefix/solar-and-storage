@@ -1,6 +1,6 @@
 # Solar and Storage
 
-# TODO this is private for the moment as I (Peter Dudfield) have worked on this before
+TODO this is private for the moment as I (Peter Dudfield) have worked on this before
 and need to check with old employer. There is enough public code that I don't think this is a problem
 
 A Python Library to run solar and storage optimization.
@@ -15,7 +15,7 @@ Thanks you to the follow repos for inspiration
 
 ## Installation
 
-# TODO
+TODO
 
 
 ## Example
@@ -69,7 +69,7 @@ fig.show(rendered="browser")
 ```
 
 ![Example](examples/solar_and_storage.png)
-
+The first plot shows the solar profile, the second shows the prices that day. The third shows the battery profile.
 You can see that the battery charged from the solar site at the end of the solar maximum
 
 
