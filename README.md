@@ -1,8 +1,5 @@
 # Solar and Storage
 
-TODO this is private for the moment as I (Peter Dudfield) have worked on this before
-and need to check with old employer. There is enough public code that I don't think this is a problem
-
 A Python Library to run solar and storage optimization.
 This uses mixed integer linear programming and maximises revenue made by charging and discharging the battery.
 The model uses variable prices and a solar generation profile.
