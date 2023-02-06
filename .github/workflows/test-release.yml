@@ -1,4 +1,4 @@
-name: CI Pipeline for SDK - Python
+name: Python test and release to PYPI
 
 on: [push, pull_request]
 
