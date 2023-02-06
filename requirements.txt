@@ -1,3 +1,4 @@
 pandas
 scipy
-cvxpy
+cvxpy==1.2.2
+
