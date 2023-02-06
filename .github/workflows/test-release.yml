@@ -1,0 +1,19 @@
+name: CI Pipeline for SDK - Python
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    uses: openclimatefix/.github/.github/workflows/python-test.yml@main
+    with:
+      pytest_cov_dir: solar_and_storage
+      python-version: "['3.10']"
+      python_path: './solar_and_storage'
+      os_list: '["ubuntu-latest"]'
+
+  publish:
+    needs: ["test"]
+    if: github.ref_name == 'main'
+    uses: openclimatefix/.github/.github/workflows/python-release.yml@main
+    secrets:
+      token: ${{ secrets.PYPI_API_TOKEN }}

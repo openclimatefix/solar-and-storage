@@ -4,12 +4,6 @@ A Python Library to run solar and storage optimization.
 This uses mixed integer linear programming and maximises revenue made by charging and discharging the battery.
 The model uses variable prices and a solar generation profile.
 
-Thanks you to the follow repos for inspiration
-- https://github.com/ADGEfficiency/energy-py-linear
-- https://github.com/wzyfrank/battery/
-- https://github.com/greysonchung/Battery-Optimisation/
-- https://github.com/edu230991/battery-optimization/
-
 ## Installation
 
 TODO
@@ -71,4 +65,11 @@ You can see that the battery charged from the solar site at the end of the solar
 
 
 
+## Thanks
 
+Thanks you to the follow repos for inspiration
+- https://github.com/ADGEfficiency/energy-py-linear
+- https://github.com/wzyfrank/battery/
+- https://github.com/greysonchung/Battery-Optimisation/
+- https://github.com/edu230991/battery-optimization/
+sdk-python-ci.yml
