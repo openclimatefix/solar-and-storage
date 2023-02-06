@@ -1,4 +1,5 @@
 pandas
 scipy
+cvxopt
 cvxpy==1.2.2
 
