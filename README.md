@@ -6,7 +6,9 @@ The model uses variable prices and a solar generation profile.
 
 ## Installation
 
-TODO
+```
+pip install solar-and-storage
+```
 
 
 ## Example
