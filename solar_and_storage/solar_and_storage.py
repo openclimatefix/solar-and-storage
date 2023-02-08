@@ -32,8 +32,10 @@ class SolarAndStorage:
         :param battery_soc_max: the battery maximum soc
         :param battery_capacity: the capacity of the battery [KWh]
         :param power_rating: the power raying of the battery [KW]
-        :param battery_eta_discharge: the efficiency of the battery discharge, should be between 0 and 1.
-        :param battery_eta_charge: the efficiency of the battery charge, should be between 0 and 1.
+        :param battery_eta_discharge: the efficiency of the battery discharge,
+            should be between 0 and 1.
+        :param battery_eta_charge: the efficiency of the battery charge,
+            should be between 0 and 1.
         :param grid_connection_capacity: the amount of power that can be delivered to the grid
         """
         self.battery_soc_min = battery_soc_min
