@@ -61,7 +61,8 @@ fig.add_trace(go.Scatter(y=prices, name="price", line_shape="hv"), row=2, col=1)
 fig.show(rendered="browser")
 ```
 
-![Example](examples/solar_and_storage.png)
+
+![Example1](https://github.com/openclimatefix/solar-and-storage/blob/main/examples/solar_and_storage.png)
 The first plot shows the solar profile, the second shows the prices that day. The third shows the battery profile.
 You can see that the battery charged from the solar site at the end of the solar maximum
 
