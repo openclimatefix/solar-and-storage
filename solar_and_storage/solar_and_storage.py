@@ -1,3 +1,4 @@
+""" File containing main solar and storage class """
 from typing import List
 
 import cvxpy as cp
@@ -8,6 +9,8 @@ HOURS_PER_DAY = 24
 
 
 class SolarAndStorage:
+    """main solar and storage class"""
+
     def __init__(
         self,
         prices: List,
@@ -20,6 +23,19 @@ class SolarAndStorage:
         battery_eta_charge: float = 0.95,
         grid_connection_capacity: float = 4,
     ):
+        """
+        Set up class with various solar and battery parameters
+
+        :param prices: list of prices
+        :param solar_generation: list of solar generations
+        :param battery_soc_min: the battery mininum soc
+        :param battery_soc_max: the battery maximum soc
+        :param battery_capacity: the capacity of the battery [KWh]
+        :param power_rating: the power raying of the battery [KW]
+        :param battery_eta_discharge: the efficiency of the battery discharge, should be between 0 and 1.
+        :param battery_eta_charge: the efficiency of the battery charge, should be between 0 and 1.
+        :param grid_connection_capacity: the amount of power that can be delivered to the grid
+        """
         self.battery_soc_min = battery_soc_min
         self.battery_soc_max = battery_soc_max
         self.battery_capacity = battery_capacity
@@ -113,6 +129,9 @@ class SolarAndStorage:
         self.objective_function = objective_function
 
     def run_optimization(self):
+        """
+        Run optimization problem
+        """
 
         # form the problem and solve.
         self.prob = cp.Problem(self.objective_function, self.constraints)
@@ -121,6 +140,7 @@ class SolarAndStorage:
         self.prob.solve(verbose=False, options={"glpk": {"msg_lev": "GLP_MSG_OFF"}})
 
     def get_results(self) -> pd.DataFrame:
+        """Get optimization results (after running)"""
         # run plot resutls
         power = np.round(
             self.battery_power_charge_cp_variable.value - self.power_discharge_cp_variable.value, 2
