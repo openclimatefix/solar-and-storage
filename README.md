@@ -49,14 +49,7 @@ result_df = solar_and_storage.get_results()
 
 Now plot the data
 ```python
-fig = make_subplots(rows=3, cols=1, subplot_titles=["Solar profile", "Price", "SOC"])
-fig.add_trace(go.Scatter(y=e_soc[:24], name="SOC"), row=3, col=1)
-fig.add_trace(go.Scatter(y=solar, name="solar", line_shape="hv"), row=1, col=1)
-fig.add_trace(
-    go.Scatter(y=solar_power_to_grid, name="solar to gird", line_shape="hv"), row=1, col=1
-)
-fig.add_trace(go.Scatter(y=prices, name="price", line_shape="hv"), row=2, col=1)
-
+fig = solar_and_storage.get_fig()
 
 fig.show(rendered="browser")
 ```
