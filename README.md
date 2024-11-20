@@ -1,6 +1,6 @@
 # Solar and Storage
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 A Python Library to run solar and storage optimization.
@@ -84,6 +84,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/peterdudfield"><img src="https://avatars.githubusercontent.com/u/34686298?v=4?s=100" width="100px;" alt="Peter Dudfield"/><br /><sub><b>Peter Dudfield</b></sub></a><br /><a href="https://github.com/openclimatefix/solar-and-storage/commits?author=peterdudfield" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/gilbertgong"><img src="https://avatars.githubusercontent.com/u/5944694?v=4?s=100" width="100px;" alt="gilbertgong"/><br /><sub><b>gilbertgong</b></sub></a><br /><a href="https://github.com/openclimatefix/solar-and-storage/commits?author=gilbertgong" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
