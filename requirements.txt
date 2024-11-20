@@ -1,5 +1,5 @@
 pandas
-scipy
+scipy==1.8.1
 cvxopt
 cvxpy==1.2.2
 

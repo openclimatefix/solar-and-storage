@@ -4,6 +4,8 @@ from typing import List
 import cvxpy as cp
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 HOURS_PER_DAY = 24
 
@@ -159,3 +161,22 @@ class SolarAndStorage:
             data=data,
             columns=["power", "e_soc", "solar_power_to_grid", "profit"],
         )
+
+    def get_fig(self) -> go.Figure:
+        result_df = self.get_results()
+
+        # run plot resutls
+        power = result_df["power"]
+        e_soc = result_df["e_soc"]
+        solar_power_to_grid = result_df["solar_power_to_grid"]
+
+        # plot
+        fig = make_subplots(rows=3, cols=1, subplot_titles=["Solar profile", "Price", "SOC"])
+        fig.add_trace(go.Scatter(y=e_soc[:24], name="SOC"), row=3, col=1)
+        fig.add_trace(go.Scatter(y=self.solar_generation, name="solar", line_shape="hv"), row=1, col=1)
+        fig.add_trace(
+            go.Scatter(y=solar_power_to_grid, name="solar to gird", line_shape="hv"), row=1, col=1
+        )
+        fig.add_trace(go.Scatter(y=self.prices, name="price", line_shape="hv"), row=2, col=1)
+
+        return fig
