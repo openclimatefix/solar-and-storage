@@ -35,3 +35,6 @@ fig = solar_and_storage.get_fig()
 fig.show(rendered="browser")
 if HTML_OUTPUT:
     fig.write_html(HTML_OUTPUT)
+print(result_df.attrs["message"])
+total_profit = solar_and_storage.get_total_profit()
+print(f'total profit: {total_profit}')

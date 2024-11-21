@@ -40,6 +40,7 @@ class SolarAndStorage:
             should be between 0 and 1.
         :param grid_connection_capacity: the amount of power that can be delivered to the grid
         """
+        self.prob = None
         self.battery_soc_min = battery_soc_min
         self.battery_soc_max = battery_soc_max
         self.battery_capacity = battery_capacity
@@ -145,6 +146,20 @@ class SolarAndStorage:
 
     def get_results(self) -> pd.DataFrame:
         """Get optimization results (after running)"""
+
+        # run optimization if not already run
+        if self.prob is None:
+            self.run_optimization()
+        # check status as we may not have found a solution
+        status = self.prob.status
+
+        if status != "optimal":
+            # Return an empty DataFrame with metadata for non-optimal cases
+            result_df = pd.DataFrame()
+            result_df.attrs["status"] = status
+            result_df.attrs["message"] = message
+            return result_df
+
         # run plot resutls
         power = np.round(
             self.battery_power_charge_cp_variable.value - self.power_discharge_cp_variable.value, 2
@@ -157,10 +172,20 @@ class SolarAndStorage:
 
         data = np.array([power, e_soc[:HOURS_PER_DAY], solar_power_to_grid, profit]).transpose()
 
-        return pd.DataFrame(
+        result_df = pd.DataFrame(
             data=data,
             columns=["power", "e_soc", "solar_power_to_grid", "profit"],
         )
+        result_df.attrs["status"] = status
+        result_df.attrs["message"] = "Optimization successful"
+
+        return result_df
+
+    def get_total_profit(self) -> float:
+        results = self.get_results()
+        if results.attrs["status"] != "optimal":
+            raise ValueError(f"Cannot calculate total profit: {results.attrs['message']}")
+        return sum(results["profit"])
 
     def get_fig(self) -> go.Figure:
         result_df = self.get_results()
