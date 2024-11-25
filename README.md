@@ -19,8 +19,6 @@ pip install solar-and-storage
 Import the packages
 ```python
 import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 from solar_and_storage.solar_and_storage import SolarAndStorage
 
@@ -52,14 +50,15 @@ result_df = solar_and_storage.get_results()
 
 Now plot the data
 ```python
-fig = solar_and_storage.get_fig()
+fig = solar_and_storage.get_figure()
 
 fig.show(rendered="browser")
 ```
 
 
-![Example1](https://raw.githubusercontent.com/openclimatefix/solar-and-storage/main/examples/solar_and_storage.png)
-The first plot shows the solar profile, the second shows the prices that day. The third shows the battery profile.
+![Example1](examples/images/battery_solar.png)
+
+The first plot shows the solar profile, the second shows the prices that day. The third shows the battery profile.  Finally the fourth shows profit.
 You can see that the battery charged from the solar site at the end of the solar maximum
 
 

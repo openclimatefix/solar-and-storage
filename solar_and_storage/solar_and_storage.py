@@ -40,6 +40,7 @@ class SolarAndStorage:
             should be between 0 and 1.
         :param grid_connection_capacity: the amount of power that can be delivered to the grid
         """
+        self.prob = None
         self.battery_soc_min = battery_soc_min
         self.battery_soc_max = battery_soc_max
         self.battery_capacity = battery_capacity
@@ -132,6 +133,13 @@ class SolarAndStorage:
         self.constraints = constraints
         self.objective_function = objective_function
 
+    def get_status(self) -> str:
+        """Runs optimization if not already run, and returns status"""
+
+        if self.prob is None:
+            self.run_optimization()
+        return self.prob.status
+
     def run_optimization(self):
         """
         Run optimization problem
@@ -145,6 +153,16 @@ class SolarAndStorage:
 
     def get_results(self) -> pd.DataFrame:
         """Get optimization results (after running)"""
+
+        status = self.get_status()
+
+        if status != "optimal":
+            # Return an empty DataFrame with metadata for non-optimal cases
+            result_df = pd.DataFrame()
+            result_df.attrs["status"] = status
+            result_df.attrs["message"] = message
+            return result_df
+
         # run plot resutls
         power = np.round(
             self.battery_power_charge_cp_variable.value - self.power_discharge_cp_variable.value, 2
@@ -157,26 +175,69 @@ class SolarAndStorage:
 
         data = np.array([power, e_soc[:HOURS_PER_DAY], solar_power_to_grid, profit]).transpose()
 
-        return pd.DataFrame(
+        result_df = pd.DataFrame(
             data=data,
             columns=["power", "e_soc", "solar_power_to_grid", "profit"],
         )
+        result_df.attrs["status"] = status
+        result_df.attrs["message"] = "Optimization successful"
 
-    def get_fig(self) -> go.Figure:
+        return result_df
+
+    def get_total_profit(self) -> float:
+        results = self.get_results()
+        if results.attrs["status"] != "optimal":
+            raise ValueError(f"Cannot calculate total profit: {results.attrs['message']}")
+        return sum(results["profit"])
+
+    def get_figure(self) -> go.Figure:
+        """Generate figure on successful optimization"""
+
+        status = self.get_status()
+
+        if status != "optimal":
+            fig = go.Figure()
+            fig.update_layout(
+                title=f"Optimization Failed: {status.capitalize()}",
+                title_x=0.5,
+            )
+            return fig
+
         result_df = self.get_results()
+        total_profit = self.get_total_profit()
 
         # run plot resutls
         power = result_df["power"]
         e_soc = result_df["e_soc"]
         solar_power_to_grid = result_df["solar_power_to_grid"]
+        profit = result_df["profit"]
 
         # plot
-        fig = make_subplots(rows=3, cols=1, subplot_titles=["Solar profile", "Price", "SOC"])
+        fig = make_subplots(rows=4, cols=1, subplot_titles=["Solar profile", "Price", "SOC", "Profit"])
         fig.add_trace(go.Scatter(y=e_soc[:24], name="SOC"), row=3, col=1)
         fig.add_trace(go.Scatter(y=self.solar_generation, name="solar", line_shape="hv"), row=1, col=1)
         fig.add_trace(
             go.Scatter(y=solar_power_to_grid, name="solar to gird", line_shape="hv"), row=1, col=1
         )
         fig.add_trace(go.Scatter(y=self.prices, name="price", line_shape="hv"), row=2, col=1)
+        fig.add_trace(go.Scatter(y=profit, name="profit", line_shape="hv"), row=4, col=1)
+
+        # Add title
+        fig.update_layout(
+            title="Solar and Storage Optimization Results",
+            title_x=0.5,
+        )
+
+        # Add total profit as an annotation below the chart
+        fig.update_layout(
+            annotations=[
+                dict(
+                    text=f"Total Profit: {total_profit:.2f}",
+                    yref="paper",
+                    y=-0.2,  # Position below the chart
+                    font=dict(size=14)
+                )
+            ]
+        )
 
         return fig

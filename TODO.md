@@ -1,0 +1,5 @@
+- add tests
+- refactor to use net_transfer_to_grid
+- incorporate consumption
+  - example with 0 solar + 0 battery
+  - build from here
