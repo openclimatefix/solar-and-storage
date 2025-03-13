@@ -10,7 +10,7 @@ install_requires = (this_directory / "requirements.txt").read_text().splitlines(
 
 setup(
     name="solar_and_storage",
-    version="0.0.10",
+    version="0.0.11",
     license="MIT",
     description="Modelling for Solar and Storage",
     author="Peter Dudfield",
