@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    uses: openclimatefix/.github/.github/workflows/python-test.yml@main
+    uses: openclimatefix/.github/.github/workflows/python-test.yml@e67a64b086a5662c39f6b4523a97dd0641904279
     with:
       pytest_cov_dir: solar_and_storage
       python-version: "['3.10']"
@@ -14,7 +14,7 @@ jobs:
   publish:
     needs: ["test"]
     if: github.ref_name == 'main'
-    uses: openclimatefix/.github/.github/workflows/python-release.yml@main
+    uses: openclimatefix/.github/.github/workflows/python-release.yml@e67a64b086a5662c39f6b4523a97dd0641904279
     secrets:
       token: ${{ secrets.PYPI_API_TOKEN }}
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
