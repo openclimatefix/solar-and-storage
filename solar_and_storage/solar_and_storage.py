@@ -175,7 +175,9 @@ class SolarAndStorage:
         solar_power_to_grid = self.solar_generation - self.power_solar_to_battery.value
         solar_profit = self.prices * solar_power_to_grid
 
-        data = np.array([power, e_soc[:HOURS_PER_DAY], solar_power_to_grid, battery_profit, solar_profit]).transpose()
+        data = np.array(
+            [power, e_soc[:HOURS_PER_DAY], solar_power_to_grid, battery_profit, solar_profit]
+        ).transpose()
 
         result_df = pd.DataFrame(
             data=data,
@@ -227,9 +229,13 @@ class SolarAndStorage:
             go.Scatter(y=solar_power_to_grid, name="solar to gird", line_shape="hv"), row=1, col=1
         )
         fig.add_trace(go.Scatter(y=self.prices, name="price", line_shape="hv"), row=2, col=1)
-        fig.add_trace(go.Scatter(y=battery_profit, name="battery profit", line_shape="hv"), row=4, col=1)
+        fig.add_trace(
+            go.Scatter(y=battery_profit, name="battery profit", line_shape="hv"), row=4, col=1
+        )
         fig.add_trace(go.Scatter(y=solar_profit, name="solar profit", line_shape="hv"), row=4, col=1)
-        fig.add_trace(go.Scatter(y=cumulative_profit, name="cumulative profit", line_shape="hv"), row=4, col=1)
+        fig.add_trace(
+            go.Scatter(y=cumulative_profit, name="cumulative profit", line_shape="hv"), row=4, col=1
+        )
 
         # Add title
         fig.update_layout(
