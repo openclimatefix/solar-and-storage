@@ -17,7 +17,6 @@ result_df = solar_and_storage.get_results()
 power = result_df["power"]
 e_soc = result_df["e_soc"]
 solar_power_to_grid = result_df["solar_power_to_grid"]
-profit = result_df["profit"]
 
 # plot
 fig = solar_and_storage.get_figure()
