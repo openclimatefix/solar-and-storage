@@ -37,7 +37,8 @@ class SolarAndStorage:
         :param battery_eta_discharge: the efficiency of the battery discharge,
             should be between 0 and 1.
         :param battery_eta_charge: the efficiency of the battery charge,
-            should be between 0 and 1.
+            should be between 0 and 1.  This only applies to grid power,
+            solar charging the battery is assumed to be 100% efficient.
         :param grid_connection_capacity: the amount of power that can be delivered to the grid
         """
         self.prob = None
