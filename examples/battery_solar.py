@@ -1,4 +1,5 @@
 """ Run a battery and solar site only simulation for one day"""
+# note this requires chrome to be installed
 
 import numpy as np
 import os
