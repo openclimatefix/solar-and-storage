@@ -24,6 +24,7 @@ class SolarAndStorage:
         battery_eta_discharge: float = 0.95,
         battery_eta_charge: float = 0.95,
         grid_connection_capacity: float = 4,
+        current_soc: float = 0,
     ):
         """
         Set up class with various solar and battery parameters
@@ -39,11 +40,13 @@ class SolarAndStorage:
         :param battery_eta_charge: the efficiency of the battery charge,
             should be between 0 and 1.
         :param grid_connection_capacity: the amount of power that can be delivered to the grid
+        :param current_soc: starting battery state of charge as a fraction of battery capacity.
         """
         self.prob = None
         self.battery_soc_min = battery_soc_min
         self.battery_soc_max = battery_soc_max
         self.battery_capacity = battery_capacity
+        self.current_soc = current_soc
         self.power_rating = power_rating
         self.eta_charge = battery_eta_charge
         self.eta_discharge = battery_eta_discharge
@@ -92,7 +95,9 @@ class SolarAndStorage:
             0 <= self.power_discharge_cp_variable,
             self.power_discharge_cp_variable <= self.power_rating,
         ]
-        constraints += [self.battery_soc_cp_variable[0] == 0]
+        constraints += [
+            self.battery_soc_cp_variable[0] == self.current_soc * self.battery_capacity
+        ]
 
         for i in range(HOURS_PER_DAY):
             constraints += [0 <= self.battery_power_charge_cp_variable[i]]

@@ -63,6 +63,29 @@ You can see that the battery charged from the solar site at the end of the solar
 
 
 
+### Starting with stored energy
+
+Use `current_soc` to set the starting battery state of charge as a fraction of
+the battery capacity. For example, a half-full battery can discharge during an
+initial high-price period:
+
+```python
+prices = np.zeros(24)
+prices[0] = 100
+solar = np.zeros(24)
+
+solar_and_storage = SolarAndStorage(
+    prices=prices,
+    solar_generation=list(solar),
+    current_soc=0.5,
+    battery_eta_charge=1,
+    battery_eta_discharge=1,
+)
+result_df = solar_and_storage.get_results()
+```
+
+![Current SOC example](examples/images/current_soc.png)
+
 ## Thanks
 
 Thanks you to the follow repos for inspiration
