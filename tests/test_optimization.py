@@ -1,6 +1,11 @@
 import numpy as np
 
-from solar_and_storage.solar_and_storage import SolarAndStorage
+from solar_and_storage import SolarAndStorage
+from solar_and_storage.solar_and_storage import SolarAndStorage as SolarAndStorageImpl
+
+
+def test_package_exports_solar_and_storage():
+    assert SolarAndStorage is SolarAndStorageImpl
 
 
 def test_solar_and_storage():

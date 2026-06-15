@@ -20,7 +20,7 @@ Import the packages
 ```python
 import numpy as np
 
-from solar_and_storage.solar_and_storage import SolarAndStorage
+from solar_and_storage import SolarAndStorage
 
 ```
 Make the fake price and solar data

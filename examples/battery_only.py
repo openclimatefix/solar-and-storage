@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from solar_and_storage.solar_and_storage import SolarAndStorage
+from solar_and_storage import SolarAndStorage
 from solar_and_storage.example import prices, no_solar
 
 HTML_OUTPUT = "" # set path or empty will skip writing HTML
