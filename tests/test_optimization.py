@@ -40,3 +40,27 @@ def test_solar_and_storage():
     assert e_soc[18] == 0
 
     # TODO add more checks and scenarios
+
+
+def test_current_soc_sets_initial_battery_state():
+    hours_per_day = 24
+
+    prices = np.zeros(hours_per_day)
+    prices[0] = 100
+    solar = np.zeros(hours_per_day)
+
+    solar_and_storage = SolarAndStorage(
+        prices=prices,
+        solar_generation=solar,
+        current_soc=0.5,
+        battery_eta_charge=1,
+        battery_eta_discharge=1,
+    )
+
+    result_df = solar_and_storage.get_results()
+
+    assert result_df.attrs["status"] == "optimal"
+    assert result_df["e_soc"][0] == 0.5
+    assert result_df["power"][0] == -0.5
+    assert result_df["e_soc"][1] == 0
+    assert solar_and_storage.get_total_profit() == 50
