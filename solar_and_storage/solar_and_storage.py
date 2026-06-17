@@ -36,9 +36,10 @@ class SolarAndStorage:
         :param battery_capacity: the capacity of the battery [KWh]
         :param power_rating: the power raying of the battery [KW]
         :param battery_eta_discharge: the efficiency of the battery discharge,
-            should be between 0 and 1.
+            - should be between 0 and 1.
         :param battery_eta_charge: the efficiency of the battery charge,
-            should be between 0 and 1.
+            - should be between 0 and 1, applies only to grid power.
+            - solar charging the battery is assumed to be 100% efficient.
         :param grid_connection_capacity: the amount of power that can be delivered to the grid
         :param current_soc: starting battery state of charge as a fraction of battery capacity.
         """
@@ -173,16 +174,19 @@ class SolarAndStorage:
             self.battery_power_charge_cp_variable.value - self.power_discharge_cp_variable.value, 2
         )
         e_soc = np.round(self.battery_soc_cp_variable.value, 2)
-        profit = self.prices * (
+        battery_profit = self.prices * (
             self.power_discharge_cp_variable.value - self.battery_power_charge_cp_variable.value
         )
         solar_power_to_grid = self.solar_generation - self.power_solar_to_battery.value
+        solar_profit = self.prices * solar_power_to_grid
 
-        data = np.array([power, e_soc[:HOURS_PER_DAY], solar_power_to_grid, profit]).transpose()
+        data = np.array(
+            [power, e_soc[:HOURS_PER_DAY], solar_power_to_grid, battery_profit, solar_profit]
+        ).transpose()
 
         result_df = pd.DataFrame(
             data=data,
-            columns=["power", "e_soc", "solar_power_to_grid", "profit"],
+            columns=["power", "e_soc", "solar_power_to_grid", "battery_profit", "solar_profit"],
         )
         result_df.attrs["status"] = status
         result_df.attrs["message"] = "Optimization successful"
@@ -193,7 +197,7 @@ class SolarAndStorage:
         results = self.get_results()
         if results.attrs["status"] != "optimal":
             raise ValueError(f"Cannot calculate total profit: {results.attrs['message']}")
-        return sum(results["profit"])
+        return sum(results["battery_profit"]) + sum(results["solar_profit"])
 
     def get_figure(self) -> go.Figure:
         """Generate figure on successful optimization"""
@@ -215,7 +219,12 @@ class SolarAndStorage:
         power = result_df["power"]
         e_soc = result_df["e_soc"]
         solar_power_to_grid = result_df["solar_power_to_grid"]
-        profit = result_df["profit"]
+        battery_profit = result_df["battery_profit"]
+        solar_profit = result_df["solar_profit"]
+
+        # Compute cumulative profit
+        total_profit_series = battery_profit + solar_profit
+        cumulative_profit = np.cumsum(total_profit_series)
 
         # plot
         fig = make_subplots(rows=4, cols=1, subplot_titles=["Solar profile", "Price", "SOC", "Profit"])
@@ -225,7 +234,13 @@ class SolarAndStorage:
             go.Scatter(y=solar_power_to_grid, name="solar to gird", line_shape="hv"), row=1, col=1
         )
         fig.add_trace(go.Scatter(y=self.prices, name="price", line_shape="hv"), row=2, col=1)
-        fig.add_trace(go.Scatter(y=profit, name="profit", line_shape="hv"), row=4, col=1)
+        fig.add_trace(
+            go.Scatter(y=battery_profit, name="battery profit", line_shape="hv"), row=4, col=1
+        )
+        fig.add_trace(go.Scatter(y=solar_profit, name="solar profit", line_shape="hv"), row=4, col=1)
+        fig.add_trace(
+            go.Scatter(y=cumulative_profit, name="cumulative profit", line_shape="hv"), row=4, col=1
+        )
 
         # Add title
         fig.update_layout(
