@@ -1,0 +1,48 @@
+# --- PROJECT CONFIGURATION --- #
+# Added alongside legacy setup.py/requirements.txt for OCF CI migration (#12).
+# Legacy packaging files are kept until the new CI is verified.
+
+[build-system]
+requires = ["setuptools>=69", "wheel", "setuptools-git-versioning>=2.0,<3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solar_and_storage"
+dynamic = ["version"]
+description = "Modelling for Solar and Storage"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.10,<3.11"
+license = { text = "MIT License" }
+authors = [
+    { name = "Peter Dudfield", email = "info@openclimatefix.org" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "pandas",
+    "scipy==1.8.1",
+    "cvxopt",
+    "cvxpy==1.2.2",
+    "plotly",
+    "kaleido",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.urls]
+repository = "https://github.com/openclimatefix/solar-and-storage"
+
+[tool.setuptools]
+include-package-data = true
+license-files = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools-git-versioning]
+enabled = true
