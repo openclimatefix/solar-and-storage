@@ -165,7 +165,7 @@ class SolarAndStorage:
             # Return an empty DataFrame with metadata for non-optimal cases
             result_df = pd.DataFrame()
             result_df.attrs["status"] = status
-            result_df.attrs["message"] = message
+            result_df.attrs["message"] = f"Optimization failed: {status}"
             return result_df
 
         # run plot resutls

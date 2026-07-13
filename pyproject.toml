@@ -33,7 +33,6 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
     "ruff>=0.9.2",
-    "unittest-xml-reporting>=3.2.0",
 ]
 
 [project.urls]
@@ -48,3 +47,56 @@ where = ["src"]
 
 [tool.setuptools-git-versioning]
 enabled = true
+
+# --- LINTING CONFIGURATION --- #
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+exclude = ["__init__.py"]
+
+[tool.ruff.lint]
+select = [
+    "F",
+    "E",
+    "W",
+    "I",
+    "UP",
+    "ANN",
+    "S",
+    "B",
+    "C4",
+    "COM",
+    "T20",
+    "SIM",
+    "ARG",
+    "DTZ",
+    "Q",
+    "TCH",
+    "D",
+    "RUF",
+]
+fixable = ["ALL"]
+ignore = [
+    "D203", "D213", "D215", "D400", "D401", "D404", "D406",
+    "D407", "D408", "D409", "D413",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"test*" = ["D", "ANN", "S"]
+"examples/**" = ["T201", "D415", "D210", "F401", "I001", "Q000"]
+"setup.py" = ["D415", "D210"]
+"src/solar_and_storage/solar_and_storage.py" = [
+    "D", "ANN", "COM812", "SIM300", "UP006", "UP035", "E501", "C408", "F841",
+]
+"src/solar_and_storage/example.py" = ["D", "ANN"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 100
