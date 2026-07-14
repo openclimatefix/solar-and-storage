@@ -19,4 +19,3 @@ jobs:
       enable_typechecking: false
       tests_folder: src/tests
       containerfile: "None"
-      test_python_versions: '["3.10"]'
