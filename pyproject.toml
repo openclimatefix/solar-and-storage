@@ -44,6 +44,7 @@ license-files = []
 
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = ["tests*"]
 
 [tool.setuptools-git-versioning]
 enabled = true
