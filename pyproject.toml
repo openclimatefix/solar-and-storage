@@ -116,12 +116,11 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "examples/**" = ["T201", "D415", "D210", "F401", "I001", "Q000"]
-"setup.py" = ["D415", "D210"]
 "src/solar_and_storage/solar_and_storage.py" = [
     "D", "ANN", "COM812", "SIM300", "UP006", "UP035", "E501", "C408", "F841",
 ]
 "src/solar_and_storage/example.py" = ["D", "ANN"]
-"test*" = ["D", "ANN"]
+"test*" = ["D", "ANN", "S101"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
