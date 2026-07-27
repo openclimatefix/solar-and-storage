@@ -1,5 +1,4 @@
-""" File containing main solar and storage class """
-from typing import List
+"""File containing main solar and storage class."""
 
 import cvxpy as cp
 import numpy as np
@@ -11,12 +10,12 @@ HOURS_PER_DAY = 24
 
 
 class SolarAndStorage:
-    """main solar and storage class"""
+    """Main solar and storage class."""
 
     def __init__(
         self,
-        prices: List,
-        solar_generation: List,
+        prices: list,
+        solar_generation: list,
         battery_soc_min: float = 0,
         battery_soc_max: float = 1,
         battery_capacity: float = 1,
@@ -25,9 +24,8 @@ class SolarAndStorage:
         battery_eta_charge: float = 0.95,
         grid_connection_capacity: float = 4,
         current_soc: float = 0,
-    ):
-        """
-        Set up class with various solar and battery parameters
+    ) -> None:
+        """Set up class with various solar and battery parameters.
 
         :param prices: list of prices
         :param solar_generation: list of solar generations
@@ -65,7 +63,7 @@ class SolarAndStorage:
         self.battery_soc_cp_variable = cp.Variable(HOURS_PER_DAY + 1)
         # if the battery is charging or discharging, cant be both
         self.charging_cp_variable = cp.Variable(
-            HOURS_PER_DAY, boolean=True
+            HOURS_PER_DAY, boolean=True,
         )  # variable to say if the battery charging or discharging
         # the amount of power flowing from the solar site to the battery
         self.power_solar_to_battery = cp.Variable(HOURS_PER_DAY)
@@ -88,41 +86,41 @@ class SolarAndStorage:
             self.battery_soc_cp_variable <= self.battery_soc_max * self.battery_capacity,
         ]
         constraints += [
-            0 <= self.battery_power_charge_cp_variable,
+            self.battery_power_charge_cp_variable >= 0,
             self.battery_power_charge_cp_variable <= self.power_rating,
         ]
         constraints += [
-            0 <= self.power_discharge_cp_variable,
+            self.power_discharge_cp_variable >= 0,
             self.power_discharge_cp_variable <= self.power_rating,
         ]
         constraints += [
-            self.battery_soc_cp_variable[0] == self.current_soc * self.battery_capacity
+            self.battery_soc_cp_variable[0] == self.current_soc * self.battery_capacity,
         ]
 
         for i in range(HOURS_PER_DAY):
-            constraints += [0 <= self.battery_power_charge_cp_variable[i]]
+            constraints += [self.battery_power_charge_cp_variable[i] >= 0]
             constraints += [
                 self.battery_power_charge_cp_variable[i]
-                <= self.power_rating * self.charging_cp_variable[i]
+                <= self.power_rating * self.charging_cp_variable[i],
             ]
-            constraints += [0 <= self.power_discharge_cp_variable[i]]
+            constraints += [self.power_discharge_cp_variable[i] >= 0]
             constraints += [
                 self.power_discharge_cp_variable[i]
-                <= (1 - self.charging_cp_variable[i]) * self.power_rating
+                <= (1 - self.charging_cp_variable[i]) * self.power_rating,
             ]
 
             # solar to battery
-            constraints += [0 <= self.power_solar_to_battery[i]]
+            constraints += [self.power_solar_to_battery[i] >= 0]
             constraints += [self.power_solar_to_battery[i] <= solar_generation[i]]
             constraints += [
                 self.power_solar_to_battery[i] + self.battery_power_charge_cp_variable[i]
-                <= self.power_rating * self.charging_cp_variable[i]
+                <= self.power_rating * self.charging_cp_variable[i],
             ]
 
             # grid constraints
             constraints += [
                 solar_generation[i] + self.power_discharge_cp_variable[i]
-                <= self.grid_connection_capacity
+                <= self.grid_connection_capacity,
             ]
 
             # battery soc
@@ -132,24 +130,20 @@ class SolarAndStorage:
             power_discharge = self.power_discharge_cp_variable[i] / self.eta_discharge
             constraints += [
                 self.battery_soc_cp_variable[i + 1]
-                == self.battery_soc_cp_variable[i] + power_charge - power_discharge
+                == self.battery_soc_cp_variable[i] + power_charge - power_discharge,
             ]
 
         self.constraints = constraints
         self.objective_function = objective_function
 
     def get_status(self) -> str:
-        """Runs optimization if not already run, and returns status"""
-
+        """Runs optimization if not already run, and returns status."""
         if self.prob is None:
             self.run_optimization()
         return self.prob.status
 
-    def run_optimization(self):
-        """
-        Run optimization problem
-        """
-
+    def run_optimization(self) -> None:
+        """Run optimization problem."""
         # form the problem and solve.
         self.prob = cp.Problem(self.objective_function, self.constraints)
 
@@ -157,8 +151,7 @@ class SolarAndStorage:
         self.prob.solve(verbose=False, options={"glpk": {"msg_lev": "GLP_MSG_OFF"}})
 
     def get_results(self) -> pd.DataFrame:
-        """Get optimization results (after running)"""
-
+        """Get optimization results (after running)."""
         status = self.get_status()
 
         if status != "optimal":
@@ -170,7 +163,7 @@ class SolarAndStorage:
 
         # run plot resutls
         power = np.round(
-            self.battery_power_charge_cp_variable.value - self.power_discharge_cp_variable.value, 2
+            self.battery_power_charge_cp_variable.value - self.power_discharge_cp_variable.value, 2,
         )
         e_soc = np.round(self.battery_soc_cp_variable.value, 2)
         profit = self.prices * (
@@ -190,14 +183,14 @@ class SolarAndStorage:
         return result_df
 
     def get_total_profit(self) -> float:
+        """Return the total profit from the optimization results."""
         results = self.get_results()
         if results.attrs["status"] != "optimal":
             raise ValueError(f"Cannot calculate total profit: {results.attrs['message']}")
         return sum(results["profit"])
 
     def get_figure(self) -> go.Figure:
-        """Generate figure on successful optimization"""
-
+        """Generate figure on successful optimization."""
         status = self.get_status()
 
         if status != "optimal":
@@ -212,17 +205,20 @@ class SolarAndStorage:
         total_profit = self.get_total_profit()
 
         # run plot resutls
-        power = result_df["power"]
         e_soc = result_df["e_soc"]
         solar_power_to_grid = result_df["solar_power_to_grid"]
         profit = result_df["profit"]
 
         # plot
-        fig = make_subplots(rows=4, cols=1, subplot_titles=["Solar profile", "Price", "SOC", "Profit"])
+        fig = make_subplots(
+            rows=4, cols=1, subplot_titles=["Solar profile", "Price", "SOC", "Profit"],
+        )
         fig.add_trace(go.Scatter(y=e_soc[:24], name="SOC"), row=3, col=1)
-        fig.add_trace(go.Scatter(y=self.solar_generation, name="solar", line_shape="hv"), row=1, col=1)
         fig.add_trace(
-            go.Scatter(y=solar_power_to_grid, name="solar to gird", line_shape="hv"), row=1, col=1
+            go.Scatter(y=self.solar_generation, name="solar", line_shape="hv"), row=1, col=1,
+        )
+        fig.add_trace(
+            go.Scatter(y=solar_power_to_grid, name="solar to gird", line_shape="hv"), row=1, col=1,
         )
         fig.add_trace(go.Scatter(y=self.prices, name="price", line_shape="hv"), row=2, col=1)
         fig.add_trace(go.Scatter(y=profit, name="profit", line_shape="hv"), row=4, col=1)
@@ -236,13 +232,13 @@ class SolarAndStorage:
         # Add total profit as an annotation below the chart
         fig.update_layout(
             annotations=[
-                dict(
-                    text=f"Total Profit: {total_profit:.2f}",
-                    yref="paper",
-                    y=-0.2,  # Position below the chart
-                    font=dict(size=14)
-                )
-            ]
+                {
+                    "text": f"Total Profit: {total_profit:.2f}",
+                    "yref": "paper",
+                    "y": -0.2,  # Position below the chart
+                    "font": {"size": 14},
+                },
+            ],
         )
 
         return fig

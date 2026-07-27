@@ -1,4 +1,4 @@
-""" These are used in the /examples directory as well as (planned) tests """
+"""These are used in the /examples directory as well as (planned) tests."""
 
 import numpy as np
 

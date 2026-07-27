@@ -1,7 +1,5 @@
-""" Run a battery and solar site only simulation for one day"""
+"""Run a battery and solar site only simulation for one day."""
 
-import numpy as np
-import os
 
 from solar_and_storage import SolarAndStorage
 from solar_and_storage.example import prices, with_solar
@@ -29,4 +27,4 @@ if PNG_OUTPUT:
     fig.write_image(PNG_OUTPUT, format="png")
 print(result_df.attrs["message"])
 total_profit = solar_and_storage.get_total_profit()
-print(f'total profit: {total_profit}')
+print(f"total profit: {total_profit}")

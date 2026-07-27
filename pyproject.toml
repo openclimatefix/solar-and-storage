@@ -27,7 +27,6 @@ dependencies = [
     "pandas",
     "plotly",
     "scipy >= 1.11.2",
-    "kaleido",
 ]
 
 [dependency-groups]
@@ -115,11 +114,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"examples/**" = ["T201", "D415", "D210", "F401", "I001", "Q000"]
-"src/solar_and_storage/solar_and_storage.py" = [
-    "D", "ANN", "COM812", "SIM300", "UP006", "UP035", "E501", "C408", "F841",
-]
-"src/solar_and_storage/example.py" = ["D", "ANN"]
+"examples/**" = ["T201"] # Allow printing in the examples
 "test*" = ["D", "ANN", "S101"]
 
 [tool.ruff.lint.pydocstyle]
