@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+
+name: Branch Push CI (Python)
+
+on:
+  push:
+    branches-ignore: ['main']
+    paths-ignore: ['README.md']
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths-ignore: ['README.md']
+
+jobs:
+  branch-ci:
+    uses: openclimatefix/.github/.github/workflows/branch_ci.yml@main
+    secrets: inherit
+    with:
+      enable_linting: true
+      enable_typechecking: false
+      tests_folder: src/tests
+      containerfile: "None"
