@@ -13,6 +13,15 @@ The model uses variable prices and a solar generation profile.
 pip install solar-and-storage
 ```
 
+## Development
+This repository uses [uv](https://docs.astral.sh/uv/) for local development and CI (`pyproject.toml` + `uv.lock`).
+
+```
+uv sync
+uv run pytest src/tests
+uv run ruff check .
+```
+
 
 ## Example
 
