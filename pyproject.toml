@@ -1,18 +1,17 @@
 # --- PROJECT CONFIGURATION --- #
-# Added alongside legacy setup.py/requirements.txt for OCF CI migration (#12).
-# Legacy packaging files are kept until the new CI is verified.
 
 [build-system]
 requires = ["setuptools>=69", "wheel", "setuptools-git-versioning>=2.0,<3"]
 build-backend = "setuptools.build_meta"
 
+# Metadata (see https://peps.python.org/pep-0621/)
 [project]
-name = "solar_and_storage"
-dynamic = ["version"]
+name = "solar-and-storage"
+dynamic = ["version"] # Set automtically using git: https://setuptools-git-versioning.readthedocs.io/en/stable/
 description = "Modelling for Solar and Storage"
-readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.10,<3.11"
-license = { text = "MIT License" }
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">=3.12.0"
+license = {text = "MIT License"}
 authors = [
     { name = "Peter Dudfield", email = "info@openclimatefix.org" },
 ]
@@ -21,18 +20,28 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-    "pandas",
-    "scipy==1.8.1",
     "cvxopt",
-    "cvxpy==1.2.2",
-    "plotly",
+    "cvxpy >= 1.5, < 1.7",
     "kaleido",
+    "numpy",
+    "pandas",
+    "plotly",
+    "scipy >= 1.11.2",
 ]
 
 [dependency-groups]
 dev = [
+    # Testing
     "pytest>=8.0.0",
-    "ruff>=0.9.2",
+    "unittest-xml-reporting",
+    # Linting and type checking
+    "mypy",
+    "pandas-stubs",
+    "ruff >= 0.9.2",
+    # LSP Support
+    "python-lsp-server",
+    "pylsp-mypy",
+    "python-lsp-ruff",
 ]
 
 [project.urls]
@@ -49,8 +58,29 @@ exclude = ["tests*"]
 [tool.setuptools-git-versioning]
 enabled = true
 
-# --- LINTING CONFIGURATION --- #
+# --- LINTING AND TYPING CONFIGURATION --- #
 
+# MyPy configuration
+# * See https://mypy.readthedocs.io/en/stable/index.html
+[tool.mypy]
+python_version = "3.12"
+dmypy = true
+strict = true
+warn_unreachable = true
+warn_return_any = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+# Ignore missing imports for libraries that don't have them.
+# If they are ever made, remove from here!
+module = [
+    "plotly.*",
+]
+ignore_missing_imports = true
+
+
+# Ruff configuration
+# * See https://beta.ruff.rs/docs/
 [tool.ruff]
 line-length = 100
 indent-width = 4
@@ -58,24 +88,24 @@ exclude = ["__init__.py"]
 
 [tool.ruff.lint]
 select = [
-    "F",
-    "E",
-    "W",
-    "I",
-    "UP",
-    "ANN",
-    "S",
-    "B",
-    "C4",
-    "COM",
-    "T20",
-    "SIM",
-    "ARG",
-    "DTZ",
-    "Q",
-    "TCH",
-    "D",
-    "RUF",
+    "F",   # pyflakes
+    "E",   # pycodestyle
+    "W",   # whitespace and newlines
+    "I",   # isort
+    "UP",  # modernize
+    "ANN", # flake8 type annotations
+    "S",   # flake8 bandit
+    "B",   # flake8 bugbear
+    "C4",  # flake8 comprehensions
+    "COM", # flake8 commas
+    "T20", # flake8 print
+    "SIM", # flake8 simplify
+    "ARG", # flake8 unused arguments
+    "DTZ", # flake8 datetimes
+    "Q",   # flake8 quotes
+    "TCH", # flake8 typecheck
+    "D",   # pydocstyle
+    "RUF", # ruff-specific rules
 ]
 fixable = ["ALL"]
 ignore = [
@@ -84,13 +114,8 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"test*" = ["D", "ANN", "S"]
-"examples/**" = ["T201", "D415", "D210", "F401", "I001", "Q000"]
-"setup.py" = ["D415", "D210"]
-"src/solar_and_storage/solar_and_storage.py" = [
-    "D", "ANN", "COM812", "SIM300", "UP006", "UP035", "E501", "C408", "F841",
-]
-"src/solar_and_storage/example.py" = ["D", "ANN"]
+"examples/**" = ["T201"] # Allow printing in the examples
+"test*" = ["D", "ANN", "S101"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

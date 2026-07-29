@@ -1,9 +1,8 @@
-""" Run a battery only simulation for one day """
+"""Run a battery only simulation for one day."""
 
-import numpy as np
 
 from solar_and_storage import SolarAndStorage
-from solar_and_storage.example import prices, no_solar
+from solar_and_storage.example import no_solar, prices
 
 HTML_OUTPUT = "" # set path or empty will skip writing HTML
 PNG_OUTPUT = "examples/images/battery_only.png" # empty will skip writing PNG
@@ -28,4 +27,4 @@ if PNG_OUTPUT:
     fig.write_image(PNG_OUTPUT, format="png")
 print(result_df.attrs["message"])
 total_profit = solar_and_storage.get_total_profit()
-print(f'total profit: {total_profit}')
+print(f"total profit: {total_profit}")
