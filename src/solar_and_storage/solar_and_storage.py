@@ -24,7 +24,6 @@ class SolarAndStorage:
         battery_eta_charge: float = 0.95,
         grid_connection_capacity: float = 4,
         current_soc: float = 0,
-        internal_consumption: list | None = None,
     ) -> None:
         """Set up class with various solar and battery parameters.
 
@@ -33,7 +32,7 @@ class SolarAndStorage:
         :param battery_soc_min: the battery mininum soc
         :param battery_soc_max: the battery maximum soc
         :param battery_capacity: the capacity of the battery [KWh]
-        :param power_rating: the power rating of the battery [KW]
+        :param power_rating: the power raying of the battery [KW]
         :param battery_eta_discharge: the efficiency of the battery discharge,
             should be between 0 and 1.
         :param battery_eta_charge: the efficiency of the battery charge,
@@ -54,9 +53,6 @@ class SolarAndStorage:
         # todo set these up as parameters
         self.solar_generation = solar_generation
         self.prices = prices
-        self.internal_consumption = internal_consumption
-        if self.internal_consumption is None:
-            self.internal_consumption = [0] * len(solar_generation)
 
         # ## Setup Variables #####
         # the amount of power going into the battery
@@ -79,9 +75,7 @@ class SolarAndStorage:
             self.power_discharge_cp_variable - self.battery_power_charge_cp_variable
         )
         # Maximise the solar revenue
-        objectives += prices_matrix @ (solar_generation
-                                       - self.power_solar_to_battery
-                                       - self.internal_consumption)
+        objectives += prices_matrix @ (solar_generation - self.power_solar_to_battery)
 
         objective_function = cp.Maximize(objectives)
 
@@ -124,22 +118,10 @@ class SolarAndStorage:
             ]
 
             # grid constraints
-            # 1. The amount going out of the grid, is
-            # A. the solar generation
-            # B. the battery discharge -
-            # C. minus what is being consumed internally
             constraints += [
-                solar_generation[i]
-                + self.power_discharge_cp_variable[i]
-                - self.internal_consumption[i]
+                solar_generation[i] + self.power_discharge_cp_variable[i]
                 <= self.grid_connection_capacity,
             ]
-            # 2. The amount coming into the grid, is
-            # A. the battery charging
-            # B. the internal consumption
-            constraints += [self.battery_power_charge_cp_variable[i] + self.internal_consumption[i]
-                            <= self.grid_connection_capacity]
-
 
             # battery soc
             power_charge = (
@@ -185,9 +167,7 @@ class SolarAndStorage:
         )
         e_soc = np.round(self.battery_soc_cp_variable.value, 2)
         profit = self.prices * (
-            self.power_discharge_cp_variable.value
-            - self.battery_power_charge_cp_variable.value
-            - self.internal_consumption
+            self.power_discharge_cp_variable.value - self.battery_power_charge_cp_variable.value
         )
         solar_power_to_grid = self.solar_generation - self.power_solar_to_battery.value
 
@@ -231,9 +211,7 @@ class SolarAndStorage:
 
         # plot
         fig = make_subplots(
-            rows=5,
-            cols=1,
-            subplot_titles=["Solar profile", "Price", "SOC", "Profit", "Internal Consumption"],
+            rows=4, cols=1, subplot_titles=["Solar profile", "Price", "SOC", "Profit"],
         )
         fig.add_trace(go.Scatter(y=e_soc[:24], name="SOC"), row=3, col=1)
         fig.add_trace(
@@ -244,9 +222,6 @@ class SolarAndStorage:
         )
         fig.add_trace(go.Scatter(y=self.prices, name="price", line_shape="hv"), row=2, col=1)
         fig.add_trace(go.Scatter(y=profit, name="profit", line_shape="hv"), row=4, col=1)
-        fig.add_trace(go.Scatter(y=self.internal_consumption,
-                                 name="internal consumption",
-                                 line_shape="hv"), row=5, col=1)
 
         # Add title
         fig.update_layout(
