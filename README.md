@@ -95,6 +95,83 @@ result_df = solar_and_storage.get_results()
 
 ![Current SOC example](examples/images/current_soc.png)
 
+## API Server
+
+The package includes a FastAPI wrapper to expose battery optimization functionality via HTTP endpoints.
+
+### Installation
+
+Install the API dependencies:
+
+```bash
+uv sync --group api
+```
+
+### Running the Server
+
+Start the API server:
+
+```bash
+uv run uvicorn solar_and_storage.api.main:app --reload
+```
+
+The server will start at `http://localhost:8000`. View the auto-generated API documentation at `http://localhost:8000/docs`.
+
+### API Usage
+
+**Health Check:**
+
+```bash
+curl http://localhost:8000/health
+```
+
+**Optimization Endpoint:**
+
+```bash
+curl -X POST http://localhost:8000/api/v1/optimize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prices": [30,30,30,30,30,30,40,40,40,50,40,40,30,30,40,40,50,60,40,30,30,30,30,30],
+    "solar_generation": [0,0,0,0,0,0,0,0,2,2,4,4,4,4,2,2,0,0,0,0,0,0,0,0]
+  }'
+```
+
+**Response Format:**
+
+```json
+{
+  "status": "optimal",
+  "message": "Optimization successful",
+  "total_profit": 12.5,
+  "schedule": [
+    {
+      "hour": 0,
+      "power": -0.5,
+      "battery_soc": 0.48,
+      "solar_power_to_grid": 0.0,
+      "profit": -15.0
+    },
+    ...
+  ]
+}
+```
+
+**Python Example:**
+
+See `examples/api_example.py` for a complete Python example using the `requests` library.
+
+### API Parameters
+
+All battery parameters from the Python API are available as optional fields in the request:
+- `battery_capacity` (default: 1.0 kWh)
+- `power_rating` (default: 1.0 kW)
+- `battery_eta_charge` (default: 0.95)
+- `battery_eta_discharge` (default: 0.95)
+- `battery_soc_min` (default: 0.0)
+- `battery_soc_max` (default: 1.0)
+- `grid_connection_capacity` (default: 4.0 kW)
+- `current_soc` (default: 0.0)
+
 ## Thanks
 
 Thanks you to the follow repos for inspiration
