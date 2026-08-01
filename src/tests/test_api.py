@@ -1,6 +1,11 @@
 """Tests for the FastAPI wrapper."""
 
 import numpy as np
+import pytest
+
+# Skip all tests in this module if fastapi is not installed
+pytest.importorskip("fastapi")
+
 from fastapi.testclient import TestClient
 
 from solar_and_storage.api.main import app
