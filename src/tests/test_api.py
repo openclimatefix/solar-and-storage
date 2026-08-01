@@ -1,7 +1,6 @@
 """Tests for the FastAPI wrapper."""
 
 import numpy as np
-import pytest
 from fastapi.testclient import TestClient
 
 from solar_and_storage.api.main import app
@@ -128,8 +127,14 @@ def test_with_default_parameters():
     """Test optimization using all default parameters."""
     # Minimal request with only required fields
     request_data = {
-        "prices": [30, 30, 30, 30, 30, 30, 40, 40, 40, 50, 40, 40, 30, 30, 40, 40, 50, 60, 40, 30, 30, 30, 30, 30],
-        "solar_generation": [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 4, 4, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+        "prices": [
+            30, 30, 30, 30, 30, 30, 40, 40, 40, 50, 40, 40,
+            30, 30, 40, 40, 50, 60, 40, 30, 30, 30, 30, 30,
+        ],
+        "solar_generation": [
+            0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 4, 4,
+            4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0,
+        ],
     }
 
     response = client.post("/api/v1/optimize", json=request_data)
@@ -143,8 +148,14 @@ def test_with_default_parameters():
 def test_with_custom_parameters():
     """Test optimization with custom battery parameters."""
     request_data = {
-        "prices": [30, 30, 30, 30, 30, 30, 40, 40, 40, 50, 40, 40, 30, 30, 40, 40, 50, 60, 40, 30, 30, 30, 30, 30],
-        "solar_generation": [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 4, 4, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+        "prices": [
+            30, 30, 30, 30, 30, 30, 40, 40, 40, 50, 40, 40,
+            30, 30, 40, 40, 50, 60, 40, 30, 30, 30, 30, 30,
+        ],
+        "solar_generation": [
+            0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 4, 4,
+            4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0,
+        ],
         "battery_capacity": 2.0,
         "power_rating": 1.5,
         "battery_eta_charge": 0.9,

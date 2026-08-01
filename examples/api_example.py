@@ -50,7 +50,7 @@ def main() -> None:
         print(f"Status: {result['status']}")
         print(f"Message: {result['message']}")
         print(f"Total Profit: {result['total_profit']:.2f}")
-        print(f"\nFirst 5 hours of schedule:")
+        print("\nFirst 5 hours of schedule:")
         for item in result["schedule"][:5]:
             print(f"  Hour {item['hour']}: "
                   f"Power={item['power']:.2f}kW, "
