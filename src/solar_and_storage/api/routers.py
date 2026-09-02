@@ -9,7 +9,7 @@ from solar_and_storage.api.models import (
     OptimizationResponse,
     ScheduleItem,
 )
-from solar_and_storage.solar_and_storage import SolarAndStorage
+from solar_and_storage.solar_and_storage import HOURS_PER_DAY, SolarAndStorage
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ def optimize(request: OptimizationRequest) -> OptimizationResponse:
                 solar_power_to_grid=float(results_df.iloc[i]["solar_power_to_grid"]),
                 profit=float(results_df.iloc[i]["profit"]),
             )
-            for i in range(24)
+            for i in range(HOURS_PER_DAY)
         ]
 
         # Calculate total profit
@@ -87,5 +87,5 @@ def optimize(request: OptimizationRequest) -> OptimizationResponse:
         logger.exception("Unexpected error during optimization")
         raise HTTPException(
             status_code=500,
-            detail=f"Internal server error: {e!s}",
+            detail="Internal server error",
         ) from e

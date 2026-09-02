@@ -50,7 +50,7 @@ def main() -> None:
         print(f"Status: {result['status']}")
         print(f"Message: {result['message']}")
         print(f"Total Profit: {result['total_profit']:.2f}")
-        print("\nFirst 5 hours of schedule:")
+        print("\nFirst 5 hours of schedule (power > 0: charging from grid, < 0: discharging):")
         for item in result["schedule"][:5]:
             print(f"  Hour {item['hour']}: "
                   f"Power={item['power']:.2f}kW, "
@@ -88,10 +88,8 @@ def main() -> None:
 
     infeasible_request = {
         "prices": [50] * 24,
-        "solar_generation": [0] * 24,
-        "battery_soc_min": 0.8,  # Min SOC 80%
-        "battery_soc_max": 0.2,  # Max SOC 20% (impossible!)
-        "current_soc": 0.5,
+        "solar_generation": [10] * 24,  # 10 kW of solar cannot pass a 4 kW grid connection
+        "grid_connection_capacity": 4,
     }
 
     response = requests.post(

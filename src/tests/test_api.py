@@ -1,13 +1,12 @@
 """Tests for the FastAPI wrapper."""
 
+from itertools import pairwise
+
 import numpy as np
 import pytest
-
-# Skip all tests in this module if fastapi is not installed
-pytest.importorskip("fastapi")
-
 from fastapi.testclient import TestClient
 
+from solar_and_storage.api import routers
 from solar_and_storage.api.main import app
 
 client = TestClient(app)
@@ -51,6 +50,9 @@ def test_successful_optimization():
     assert data["total_profit"] > 0
     assert data["schedule"] is not None
     assert len(data["schedule"]) == 24
+    assert data["total_profit"] == pytest.approx(
+        sum(item["profit"] for item in data["schedule"]),
+    )
 
     # Check schedule structure
     first_item = data["schedule"][0]
@@ -105,18 +107,15 @@ def test_validation_error_invalid_capacity():
 
 def test_infeasible_scenario():
     """Test handling of infeasible optimization scenario."""
-    # Create an infeasible scenario: impossible constraints
+    # Solar generation above the grid connection capacity can never be exported,
+    # so the solver reports the problem as infeasible.
     prices = [50] * 24
-    solar = [0] * 24
+    solar = [10] * 24
 
     request_data = {
         "prices": prices,
         "solar_generation": solar,
-        "battery_soc_min": 0.8,  # Minimum SOC of 80%
-        "battery_soc_max": 0.2,  # Maximum SOC of 20% (impossible!)
-        "battery_capacity": 1,
-        "power_rating": 1,
-        "current_soc": 0.5,
+        "grid_connection_capacity": 4,
     }
 
     response = client.post("/api/v1/optimize", json=request_data)
@@ -174,3 +173,78 @@ def test_with_custom_parameters():
     data = response.json()
     assert data["status"] == "optimal"
     assert data["total_profit"] is not None
+
+
+def test_validation_error_soc_min_above_soc_max():
+    """SOC bounds in the wrong order are rejected before reaching the solver."""
+    request_data = {
+        "prices": [30] * 24,
+        "solar_generation": [0] * 24,
+        "battery_soc_min": 0.8,
+        "battery_soc_max": 0.2,
+        "current_soc": 0.5,
+    }
+
+    response = client.post("/api/v1/optimize", json=request_data)
+    assert response.status_code == 422
+    assert "battery_soc_min" in response.text
+
+
+def test_validation_error_current_soc_outside_bounds():
+    """A starting SOC outside the SOC bounds is rejected before reaching the solver."""
+    request_data = {
+        "prices": [30] * 24,
+        "solar_generation": [0] * 24,
+        "battery_soc_min": 0.2,
+        "battery_soc_max": 0.8,
+        "current_soc": 0.9,
+    }
+
+    response = client.post("/api/v1/optimize", json=request_data)
+    assert response.status_code == 422
+    assert "current_soc" in response.text
+
+
+def test_power_sign_matches_soc_change():
+    """Positive power charges the battery (SOC rises), negative power discharges it."""
+    request_data = {
+        "prices": [
+            30, 30, 30, 30, 30, 30, 40, 40, 40, 50, 40, 40,
+            30, 30, 40, 40, 50, 60, 40, 30, 30, 30, 30, 30,
+        ],
+        # No solar, so the battery can only be charged from the grid and every
+        # SOC change is explained by `power`.
+        "solar_generation": [0] * 24,
+    }
+
+    response = client.post("/api/v1/optimize", json=request_data)
+    assert response.status_code == 200
+    schedule = response.json()["schedule"]
+
+    # battery_soc is the level at the start of the hour, so the effect of this
+    # hour's power shows up in the next item.
+    checked_hours = 0
+    for current, following in pairwise(schedule):
+        soc_change = following["battery_soc"] - current["battery_soc"]
+        if abs(current["power"]) > 0.1:
+            assert np.sign(current["power"]) == np.sign(soc_change)
+            checked_hours += 1
+    assert checked_hours > 0
+
+
+def test_internal_error_does_not_leak_details(monkeypatch):
+    """Unexpected errors return a generic message without exception details."""
+
+    def explode(*_args, **_kwargs):
+        raise RuntimeError("secret solver details")
+
+    monkeypatch.setattr(routers, "SolarAndStorage", explode)
+
+    request_data = {
+        "prices": [30] * 24,
+        "solar_generation": [0] * 24,
+    }
+
+    response = client.post("/api/v1/optimize", json=request_data)
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Internal server error"}

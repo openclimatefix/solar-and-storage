@@ -101,11 +101,13 @@ The package includes a FastAPI wrapper to expose battery optimization functional
 
 ### Installation
 
-Install the API dependencies:
+Install the package with the `api` extra:
 
 ```bash
-uv sync --group api
+pip install "solar-and-storage[api]"
 ```
+
+From a clone of this repository, `uv sync` installs the API dependencies together with the dev tools.
 
 ### Running the Server
 
@@ -142,19 +144,28 @@ curl -X POST http://localhost:8000/api/v1/optimize \
 {
   "status": "optimal",
   "message": "Optimization successful",
-  "total_profit": 12.5,
+  "total_profit": 72.92,
   "schedule": [
     {
-      "hour": 0,
-      "power": -0.5,
-      "battery_soc": 0.48,
+      "hour": 5,
+      "power": 1.0,
+      "battery_soc": 0.05,
       "solar_power_to_grid": 0.0,
-      "profit": -15.0
+      "profit": -30.0
+    },
+    {
+      "hour": 9,
+      "power": -0.95,
+      "battery_soc": 1.0,
+      "solar_power_to_grid": 2.0,
+      "profit": 47.5
     },
     ...
   ]
 }
 ```
+
+`power` is the battery power exchanged with the grid in kW: positive means charging from the grid, negative means discharging. Charging from solar is not part of `power`. `battery_soc` is the energy stored in kWh at the start of the hour. `profit` and `total_profit` cover the battery only, `price * (discharge - charge)`, so solar revenue is not included.
 
 **Python Example:**
 
@@ -171,6 +182,8 @@ All battery parameters from the Python API are available as optional fields in t
 - `battery_soc_max` (default: 1.0)
 - `grid_connection_capacity` (default: 4.0 kW)
 - `current_soc` (default: 0.0)
+
+`battery_soc_min` must not exceed `battery_soc_max`, and `current_soc` must lie between them. Requests that violate this are rejected with HTTP 422.
 
 ## Thanks
 

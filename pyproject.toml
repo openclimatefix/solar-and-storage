@@ -29,11 +29,22 @@ dependencies = [
     "scipy >= 1.11.2",
 ]
 
+[project.optional-dependencies]
+# Install with `pip install "solar-and-storage[api]"` to run the HTTP API
+api = [
+    "fastapi >= 0.115.0",
+    "uvicorn[standard] >= 0.32.0",
+]
+
 [dependency-groups]
 dev = [
     # Testing
     "pytest>=8.0.0",
     "unittest-xml-reporting",
+    "httpx",  # required by fastapi's TestClient
+    # API (same as the `api` extra, so `uv sync` can run the server and its tests)
+    "fastapi >= 0.115.0",
+    "uvicorn[standard] >= 0.32.0",
     # Linting and type checking
     "mypy",
     "pandas-stubs",
@@ -42,10 +53,6 @@ dev = [
     "python-lsp-server",
     "pylsp-mypy",
     "python-lsp-ruff",
-]
-api = [
-    "fastapi >= 0.115.0",
-    "uvicorn[standard] >= 0.32.0",
 ]
 
 [project.urls]
@@ -68,6 +75,7 @@ enabled = true
 # * See https://mypy.readthedocs.io/en/stable/index.html
 [tool.mypy]
 python_version = "3.12"
+dmypy = true
 strict = true
 warn_unreachable = true
 warn_return_any = true

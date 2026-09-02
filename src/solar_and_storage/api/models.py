@@ -1,8 +1,10 @@
 """Pydantic models for FastAPI request/response validation."""
 
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from solar_and_storage.solar_and_storage import HOURS_PER_DAY
 
 
 class OptimizationRequest(BaseModel):
@@ -97,7 +99,7 @@ class OptimizationRequest(BaseModel):
     @field_validator("prices", "solar_generation")
     @classmethod
     def validate_list_length(cls, v: list[float]) -> list[float]:
-        """Validate that lists have exactly 24 items.
+        """Validate that lists have exactly one item per hour of the day.
 
         Args:
             v: The list to validate.
@@ -106,11 +108,36 @@ class OptimizationRequest(BaseModel):
             The validated list.
 
         Raises:
-            ValueError: If list length is not 24.
+            ValueError: If list length is not HOURS_PER_DAY.
         """
-        if len(v) != 24:
-            raise ValueError(f"List must have exactly 24 items, got {len(v)}")
+        if len(v) != HOURS_PER_DAY:
+            raise ValueError(f"List must have exactly {HOURS_PER_DAY} items, got {len(v)}")
         return v
+
+    @model_validator(mode="after")
+    def validate_soc_bounds(self) -> Self:
+        """Validate that the SOC bounds are ordered and contain the starting SOC.
+
+        Either violation would otherwise reach the solver as an infeasible problem.
+
+        Returns:
+            The validated request.
+
+        Raises:
+            ValueError: If battery_soc_min exceeds battery_soc_max, or current_soc lies
+                outside the [battery_soc_min, battery_soc_max] range.
+        """
+        if self.battery_soc_min > self.battery_soc_max:
+            raise ValueError(
+                f"battery_soc_min ({self.battery_soc_min}) must not exceed "
+                f"battery_soc_max ({self.battery_soc_max})",
+            )
+        if not self.battery_soc_min <= self.current_soc <= self.battery_soc_max:
+            raise ValueError(
+                f"current_soc ({self.current_soc}) must lie between battery_soc_min "
+                f"({self.battery_soc_min}) and battery_soc_max ({self.battery_soc_max})",
+            )
+        return self
 
 
 class ScheduleItem(BaseModel):
@@ -118,28 +145,31 @@ class ScheduleItem(BaseModel):
 
     Attributes:
         hour: Hour index (0-23).
-        power: Net battery power (positive=discharge, negative=charge) in kW.
-        battery_soc: Battery state of charge in kWh.
+        power: Battery power from the grid (positive=charge, negative=discharge) in kW.
+        battery_soc: Battery state of charge in kWh at the start of the hour.
         solar_power_to_grid: Solar power exported to grid in kW.
-        profit: Profit for this hour.
+        profit: Battery profit for this hour, solar revenue not included.
     """
 
     hour: int = Field(
         ...,
         ge=0,
-        le=23,
+        le=HOURS_PER_DAY - 1,
         title="Hour",
         description="Hour of the day (0-23)",
     )
     power: float = Field(
         ...,
         title="Battery Power",
-        description="Net battery power in kW (positive = discharging, negative = charging)",
+        description=(
+            "Battery power exchanged with the grid in kW (positive = charging from the grid, "
+            "negative = discharging). Charging from solar is not included."
+        ),
     )
     battery_soc: float = Field(
         ...,
         title="Battery State of Charge",
-        description="Battery energy level in kWh at the end of this hour",
+        description="Battery energy level in kWh at the start of this hour",
     )
     solar_power_to_grid: float = Field(
         ...,
@@ -149,7 +179,10 @@ class ScheduleItem(BaseModel):
     profit: float = Field(
         ...,
         title="Profit",
-        description="Profit earned during this hour from both battery and solar",
+        description=(
+            "Battery profit for this hour: price * (discharge - charge). "
+            "Solar revenue is not included."
+        ),
     )
 
 
@@ -171,18 +204,18 @@ class OptimizationResponse(BaseModel):
                 "total_profit": 72.92,
                 "schedule": [
                     {
-                        "hour": 0,
-                        "power": -0.5,
-                        "battery_soc": 0.48,
+                        "hour": 5,
+                        "power": 1.0,
+                        "battery_soc": 0.05,
                         "solar_power_to_grid": 0.0,
-                        "profit": -15.0,
+                        "profit": -30.0,
                     },
                     {
-                        "hour": 1,
-                        "power": 0.0,
-                        "battery_soc": 0.48,
-                        "solar_power_to_grid": 0.0,
-                        "profit": 0.0,
+                        "hour": 9,
+                        "power": -0.95,
+                        "battery_soc": 1.0,
+                        "solar_power_to_grid": 2.0,
+                        "profit": 47.5,
                     },
                 ],
             },
@@ -202,7 +235,10 @@ class OptimizationResponse(BaseModel):
     total_profit: float | None = Field(
         default=None,
         title="Total Profit",
-        description="Sum of all hourly profits over 24 hours (null if optimization failed)",
+        description=(
+            "Sum of the hourly battery profits, solar revenue not included "
+            "(null if optimization failed)"
+        ),
     )
     schedule: list[ScheduleItem] | None = Field(
         default=None,
