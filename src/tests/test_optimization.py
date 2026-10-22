@@ -69,3 +69,16 @@ def test_current_soc_sets_initial_battery_state():
     assert result_df["power"][0] == -0.5
     assert result_df["e_soc"][1] == 0
     assert solar_and_storage.get_total_profit() == 50
+
+
+def test_optimization_uses_input_profile_length():
+    hours = 25
+    solar_and_storage = SolarAndStorage(
+        prices=np.zeros(hours),
+        solar_generation=np.zeros(hours),
+    )
+
+    result_df = solar_and_storage.get_results()
+
+    assert len(result_df) == hours
+    assert len(solar_and_storage.get_figure().data[0].y) == hours
