@@ -163,7 +163,7 @@ class SolarAndStorage:
 
         # run plot resutls
         power = np.round(
-            self.battery_power_charge_cp_variable.value - self.power_discharge_cp_variable.value, 2,
+            self.power_discharge_cp_variable.value - self.battery_power_charge_cp_variable.value, 2,
         )
         e_soc = np.round(self.battery_soc_cp_variable.value, 2)
         profit = self.prices * (

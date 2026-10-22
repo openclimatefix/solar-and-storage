@@ -66,6 +66,6 @@ def test_current_soc_sets_initial_battery_state():
 
     assert result_df.attrs["status"] == "optimal"
     assert result_df["e_soc"][0] == 0.5
-    assert result_df["power"][0] == -0.5
+    assert result_df["power"][0] == 0.5
     assert result_df["e_soc"][1] == 0
     assert solar_and_storage.get_total_profit() == 50
