@@ -6,8 +6,6 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-HOURS_PER_DAY = 24
-
 
 class SolarAndStorage:
     """Main solar and storage class."""
@@ -29,6 +27,7 @@ class SolarAndStorage:
 
         :param prices: list of prices
         :param solar_generation: list of solar generations
+            Must have the same length as prices; the profile length sets the optimization horizon.
         :param battery_soc_min: the battery mininum soc
         :param battery_soc_max: the battery maximum soc
         :param battery_capacity: the capacity of the battery [KWh]
@@ -50,23 +49,29 @@ class SolarAndStorage:
         self.eta_discharge = battery_eta_discharge
         self.grid_connection_capacity = grid_connection_capacity
 
+        self.hours_per_day = len(prices)
+        if self.hours_per_day == 0:
+            raise ValueError("prices and solar_generation must not be empty")
+        if len(solar_generation) != self.hours_per_day:
+            raise ValueError("prices and solar_generation must have the same length")
+
         # todo set these up as parameters
         self.solar_generation = solar_generation
         self.prices = prices
 
         # ## Setup Variables #####
         # the amount of power going into the battery
-        self.battery_power_charge_cp_variable = cp.Variable(HOURS_PER_DAY)
+        self.battery_power_charge_cp_variable = cp.Variable(self.hours_per_day)
         # the amount of power going out of the battery
-        self.power_discharge_cp_variable = cp.Variable(HOURS_PER_DAY)
+        self.power_discharge_cp_variable = cp.Variable(self.hours_per_day)
         # the battery soc level
-        self.battery_soc_cp_variable = cp.Variable(HOURS_PER_DAY + 1)
+        self.battery_soc_cp_variable = cp.Variable(self.hours_per_day + 1)
         # if the battery is charging or discharging, cant be both
         self.charging_cp_variable = cp.Variable(
-            HOURS_PER_DAY, boolean=True,
+            self.hours_per_day, boolean=True,
         )  # variable to say if the battery charging or discharging
         # the amount of power flowing from the solar site to the battery
-        self.power_solar_to_battery = cp.Variable(HOURS_PER_DAY)
+        self.power_solar_to_battery = cp.Variable(self.hours_per_day)
 
         # ## Setup objectives #####
         prices_matrix = np.expand_dims(self.prices, 0)
@@ -97,7 +102,7 @@ class SolarAndStorage:
             self.battery_soc_cp_variable[0] == self.current_soc * self.battery_capacity,
         ]
 
-        for i in range(HOURS_PER_DAY):
+        for i in range(self.hours_per_day):
             constraints += [self.battery_power_charge_cp_variable[i] >= 0]
             constraints += [
                 self.battery_power_charge_cp_variable[i]
@@ -171,7 +176,9 @@ class SolarAndStorage:
         )
         solar_power_to_grid = self.solar_generation - self.power_solar_to_battery.value
 
-        data = np.array([power, e_soc[:HOURS_PER_DAY], solar_power_to_grid, profit]).transpose()
+        data = np.array(
+            [power, e_soc[:self.hours_per_day], solar_power_to_grid, profit],
+        ).transpose()
 
         result_df = pd.DataFrame(
             data=data,
@@ -213,7 +220,7 @@ class SolarAndStorage:
         fig = make_subplots(
             rows=4, cols=1, subplot_titles=["Solar profile", "Price", "SOC", "Profit"],
         )
-        fig.add_trace(go.Scatter(y=e_soc[:24], name="SOC"), row=3, col=1)
+        fig.add_trace(go.Scatter(y=e_soc, name="SOC"), row=3, col=1)
         fig.add_trace(
             go.Scatter(y=self.solar_generation, name="solar", line_shape="hv"), row=1, col=1,
         )
