@@ -76,8 +76,8 @@ def test_quarter_hour_block_scales_battery_energy_and_profit():
     solar_and_storage = SolarAndStorage(
         prices=[0, 100],
         solar_generation=[1, 0],
-        battery_eta_charge=1,
-        battery_eta_discharge=1,
+        battery_eta_charge=1.0,
+        battery_eta_discharge=0.92,
         block_duration_mins=15,
     )
 
@@ -85,9 +85,10 @@ def test_quarter_hour_block_scales_battery_energy_and_profit():
 
     assert result_df.attrs["status"] == "optimal"
     assert result_df["e_soc"][0] == 0
+    assert result_df["power"][0] == -1
     assert result_df["e_soc"][1] == 0.25
-    assert result_df["power"][1] == 1
-    assert solar_and_storage.get_total_profit() == 25
+    assert result_df["power"][1] == 0.92
+    assert solar_and_storage.get_total_profit() == 23
 
 
 def test_block_duration_must_be_positive_and_finite():
