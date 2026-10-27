@@ -22,6 +22,7 @@ class SolarAndStorage:
         battery_eta_charge: float = 0.95,
         grid_connection_capacity: float = 4,
         current_soc: float = 0,
+        block_duration: float = 1,
     ) -> None:
         """Set up class with various solar and battery parameters.
 
@@ -38,7 +39,11 @@ class SolarAndStorage:
             should be between 0 and 1.
         :param grid_connection_capacity: the amount of power that can be delivered to the grid
         :param current_soc: starting battery state of charge as a fraction of battery capacity.
+        :param block_duration: duration of each optimization step in hours.
         """
+        if not np.isfinite(block_duration) or block_duration <= 0:
+            raise ValueError("block_duration must be a positive finite number")
+
         self.prob = None
         self.battery_soc_min = battery_soc_min
         self.battery_soc_max = battery_soc_max
@@ -48,6 +53,7 @@ class SolarAndStorage:
         self.eta_charge = battery_eta_charge
         self.eta_discharge = battery_eta_discharge
         self.grid_connection_capacity = grid_connection_capacity
+        self.block_duration = block_duration
 
         self.hours_per_day = len(prices)
         if self.hours_per_day == 0:
@@ -78,9 +84,11 @@ class SolarAndStorage:
         # Maximise the battery revenue
         objectives = prices_matrix @ (
             self.power_discharge_cp_variable - self.battery_power_charge_cp_variable
-        )
+        ) * self.block_duration
         # Maximise the solar revenue
-        objectives += prices_matrix @ (solar_generation - self.power_solar_to_battery)
+        objectives += (
+            prices_matrix @ (solar_generation - self.power_solar_to_battery)
+        ) * self.block_duration
 
         objective_function = cp.Maximize(objectives)
 
@@ -135,7 +143,8 @@ class SolarAndStorage:
             power_discharge = self.power_discharge_cp_variable[i] / self.eta_discharge
             constraints += [
                 self.battery_soc_cp_variable[i + 1]
-                == self.battery_soc_cp_variable[i] + power_charge - power_discharge,
+                == self.battery_soc_cp_variable[i]
+                + self.block_duration * (power_charge - power_discharge),
             ]
 
         self.constraints = constraints
@@ -173,7 +182,7 @@ class SolarAndStorage:
         e_soc = np.round(self.battery_soc_cp_variable.value, 2)
         profit = self.prices * (
             self.power_discharge_cp_variable.value - self.battery_power_charge_cp_variable.value
-        )
+        ) * self.block_duration
         solar_power_to_grid = self.solar_generation - self.power_solar_to_battery.value
 
         data = np.array(
