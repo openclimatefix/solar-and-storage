@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from solar_and_storage import SolarAndStorage
 from solar_and_storage.solar_and_storage import SolarAndStorage as SolarAndStorageImpl
@@ -69,6 +70,38 @@ def test_current_soc_sets_initial_battery_state():
     assert result_df["power"][0] == 0.5
     assert result_df["e_soc"][1] == 0
     assert solar_and_storage.get_total_profit() == 50
+
+
+def test_quarter_hour_block_scales_battery_energy_and_profit():
+    solar_and_storage = SolarAndStorage(
+        prices=[0, 100],
+        solar_generation=[1, 0],
+        battery_eta_charge=1.0,
+        battery_eta_discharge=0.92,
+        block_duration_mins=15,
+    )
+
+    result_df = solar_and_storage.get_results()
+
+    assert result_df.attrs["status"] == "optimal"
+    assert result_df["e_soc"][0] == 0
+    assert result_df["power"][0] == -1
+    assert result_df["e_soc"][1] == 0.25
+    assert result_df["power"][1] == 0.92
+    assert solar_and_storage.get_total_profit() == 23
+
+
+def test_block_duration_must_be_positive_and_finite():
+    for block_duration_mins in (0, -15, np.inf, np.nan):
+        with pytest.raises(
+            ValueError,
+            match="block_duration_mins must be a positive finite number",
+        ):
+            SolarAndStorage(
+                prices=[0],
+                solar_generation=[0],
+                block_duration_mins=block_duration_mins,
+            )
 
 
 def test_optimization_uses_input_profile_length():
