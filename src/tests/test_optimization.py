@@ -78,27 +78,28 @@ def test_quarter_hour_block_scales_battery_energy_and_profit():
         solar_generation=[1, 0],
         battery_eta_charge=1,
         battery_eta_discharge=1,
-        block_duration=0.25,
+        block_duration_mins=15,
     )
 
     result_df = solar_and_storage.get_results()
 
     assert result_df.attrs["status"] == "optimal"
+    assert result_df["e_soc"][0] == 0
     assert result_df["e_soc"][1] == 0.25
     assert result_df["power"][1] == 1
     assert solar_and_storage.get_total_profit() == 25
 
 
 def test_block_duration_must_be_positive_and_finite():
-    for block_duration in (0, -0.25, np.inf, np.nan):
+    for block_duration_mins in (0, -15, np.inf, np.nan):
         with pytest.raises(
             ValueError,
-            match="block_duration must be a positive finite number",
+            match="block_duration_mins must be a positive finite number",
         ):
             SolarAndStorage(
                 prices=[0],
                 solar_generation=[0],
-                block_duration=block_duration,
+                block_duration_mins=block_duration_mins,
             )
 
 
