@@ -18,4 +18,6 @@ jobs:
       enable_linting: true
       enable_typechecking: false
       tests_folder: src/tests
+      # The test container's default Python moved to 3.14, which has no cvxpy<1.7 wheels
+      test_python_versions: '["3.12"]'
       containerfile: "None"
